@@ -17,6 +17,12 @@ const ExpandSection = ({ title, children }) => {
         justifyContent="space-between"
         alignItems="center"
         mb={1}
+        style={{
+          borderRadius: "5px",
+          paddingLeft: "5px",
+          paddingRight: "5px",
+          border: "1px solid #ccc",
+        }}
       >
         <Typography variant="subtitle2" textAlign="left">
           {title}

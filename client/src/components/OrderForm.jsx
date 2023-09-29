@@ -1,28 +1,30 @@
 import React from "react";
 import { LoadingButton } from "@mui/lab";
-import { Container, Stack, Alert, Typography } from "@mui/material";
+import { Container, Stack, Alert, Typography, IconButton } from "@mui/material";
 import { FormProvider, FTextField } from "../components/form";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import axios from "axios";
 import { OrderSchema } from "../schema/form/order";
 import ExpandSection from "../components/ExpandForm";
+import AddIcon from "@mui/icons-material/Add";
+import CloseIcon from "@mui/icons-material/Close";
 
 const defaultValues = {
   totalAmount: { amount: "190.00", currency: "EUR" },
   consumer: {
-    phoneNumber: "0400000001",
+    phoneNumber: "",
     givenNames: "Joe",
     surname: "Consumer",
-    email: "test@scalapay.com",
+    email: "",
   },
   billing: {
-    name: "Joe Consumer",
-    line1: "Via della Rosa, 58",
-    suburb: "Montelupo Fiorentino",
-    postcode: "50056",
-    countryCode: "IT",
-    phoneNumber: "0400000000",
+    name: "",
+    line1: "",
+    suburb: "",
+    postcode: "",
+    countryCode: "",
+    phoneNumber: "",
   },
   shipping: {
     name: "Joe Consumer",
@@ -30,34 +32,20 @@ const defaultValues = {
     suburb: "Montelupo Fiorentino",
     postcode: "50056",
     countryCode: "IT",
-    phoneNumber: "0400000000",
+    phoneNumber: "",
   },
   items: [
     {
+      gtin: "",
       name: "T-Shirt",
       category: "clothes",
-      subcategory: ["shirt", "long-sleeve"],
-      brand: "TopChoice",
-      gtin: "123458791330",
+      brand: "",
       sku: "12341234",
       quantity: 1,
       price: { amount: "10.00", currency: "EUR" },
-      pageUrl: "https://www.scalapay.com//product/view/",
-      imageUrl: "https://www.scalapay.com//product/view/",
+      pageUrl: "",
+      imageUrl: "",
     },
-    {
-      name: "Jeans",
-      category: "clothes",
-      subcategory: ["pants", "jeans"],
-      brand: "TopChoice",
-      gtin: "123458722222",
-      sku: "12341235",
-      quantity: 1,
-      price: { amount: "20.00", currency: "EUR" },
-    },
-  ],
-  discounts: [
-    { displayName: "10% Off", amount: { amount: "3.00", currency: "EUR" } },
   ],
   merchant: {
     redirectConfirmUrl: "https://portal.integration.scalapay.com/success-url",
@@ -84,6 +72,11 @@ const OrderForm = () => {
     formState: { errors, isSubmitting },
   } = methods;
 
+  const { fields, append, remove } = useFieldArray({
+    control: methods.control,
+    name: "items",
+  });
+
   const apiUrl = "http://localhost:3001/api/orders";
   const onSubmit = async (data) => {
     try {
@@ -98,10 +91,7 @@ const OrderForm = () => {
       window.location.href = response.data.checkoutUrl;
     } catch (error) {
       reset();
-      setError("responseError", {
-        type: "manual",
-        message: "An error occurred while creating the order.",
-      });
+      setError("responseError", error);
     }
   };
 
@@ -116,15 +106,25 @@ const OrderForm = () => {
 
           {/* Total Amount */}
           <ExpandSection title="Total Amount">
-            <FTextField name="totalAmount.amount" label="Amount" />
-            <FTextField name="totalAmount.currency" label="Currency" />
+            <FTextField
+              type="number"
+              name="totalAmount.amount"
+              label="Amount"
+              inputProps={{ min: 1 }}
+              required
+            />
+            <FTextField name="totalAmount.currency" label="Currency" required />
           </ExpandSection>
 
           {/* Consumer */}
           <ExpandSection title="Consumer">
             <FTextField name="consumer.phoneNumber" label="Phone Number" />
-            <FTextField name="consumer.givenNames" label="Given Names" />
-            <FTextField name="consumer.surname" label="Surname" />
+            <FTextField
+              name="consumer.givenNames"
+              label="Given Names"
+              required
+            />
+            <FTextField name="consumer.surname" label="Surname" required />
             <FTextField name="consumer.email" label="Email" />
           </ExpandSection>
 
@@ -140,45 +140,88 @@ const OrderForm = () => {
 
           {/* Shipping */}
           <ExpandSection title="Shipping">
-            <FTextField name="shipping.name" label="Name" />
-            <FTextField name="shipping.line1" label="Address Line 1" />
-            <FTextField name="shipping.suburb" label="Suburb" />
-            <FTextField name="shipping.postcode" label="Postcode" />
-            <FTextField name="shipping.countryCode" label="Country Code" />
             <FTextField name="shipping.phoneNumber" label="Phone Number" />
+            <FTextField name="shipping.name" label="Name" required/>
+            <FTextField name="shipping.line1" label="Address Line 1" required/>
+            <FTextField name="shipping.suburb" label="Suburb" required/>
+            <FTextField name="shipping.postcode" label="Postcode" required/>
+            <FTextField name="shipping.countryCode" label="Country Code" required/>
           </ExpandSection>
 
           {/* Items */}
-          <Typography variant="subtitle2" textAlign={"left"}>
-            Items
-          </Typography>
-          {defaultValues.items.map((item, index) => (
-            <div key={index}>
-              <FTextField name={`items[${index}].name`} label="Item Name" />
-              <FTextField name={`items[${index}].category`} label="Category" />
-              <FTextField name={`items[${index}].quantity`} label="Quantity" />
-              <FTextField
-                name={`items[${index}].price.amount`}
-                label="Price Amount"
-              />
-              <FTextField
-                name={`items[${index}].price.currency`}
-                label="Price Currency"
-              />
-              <FTextField name={`items[${index}].sku`} label="sku" />
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+            mb={1}
+            style={{
+              borderRadius: "5px",
+              paddingLeft: "5px",
+              paddingRight: "5px",
+              border: "1px solid #ccc",
+            }}
+          >
+            <Typography variant="subtitle2" textAlign={"left"}>
+              Items
+            </Typography>
+            <IconButton variant="contained" onClick={() => append({})}>
+              <AddIcon fontSize="small" />
+            </IconButton>
+          </Stack>
+          {fields.map((item, index) => (
+            <div key={item.id}>
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+                mb={1}
+                style={{
+                  borderRadius: "5px",
+                  paddingLeft: "15px",
+                  paddingRight: "5px",
+                  border: "1px solid #ccc",
+                }}
+              >
+                <Typography variant="subtitle2" textAlign={"left"}>
+                  Item {index + 1}
+                </Typography>
+                <IconButton variant="outlined" onClick={() => remove(index)}>
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </Stack>
+              <Stack spacing={1}>
+                <FTextField
+                  name={`items[${index}].gtin`}
+                  label="Global Trade Item Number"
+                />
+                <FTextField
+                  name={`items[${index}].quantity`}
+                  label="Quantity"
+                />
+                <FTextField
+                  // type="number"
+                  name={`items[${index}].price.amount`}
+                  label="Price Amount"
+                  // inputProps={{ min: 1 }}
+                />
+                <FTextField
+                  name={`items[${index}].price.currency`}
+                  label="Price Currency"
+                />
+                <FTextField name={`items[${index}].name`} label="Item Name" />
+                <FTextField
+                  name={`items[${index}].category`}
+                  label="Category"
+                />
+                <FTextField name={`items[${index}].brand`} label="Brand" />
+                <FTextField name={`items[${index}].pageUrl`} label="Page Url" />
+                <FTextField
+                  name={`items[${index}].imageUrl`}
+                  label="Image Url"
+                />
+              </Stack>
             </div>
           ))}
-
-          {/* Discounts */}
-          {/* <Typography variant="subtitle2" textAlign={"left"}>Discounts</Typography>
-          {defaultValues.discounts.map((discount, index) => (
-            <div key={index}>
-              <FTextField
-                name={`discounts[${index}].displayName`}
-                label="Discount Name"
-              />
-            </div>
-          ))} */}
 
           {/* Merchant */}
           <ExpandSection title="Merchant">
@@ -194,13 +237,23 @@ const OrderForm = () => {
 
           {/* Tax Amount */}
           <ExpandSection title="Tax Amount">
-            <FTextField name="taxAmount.amount" label="Tax Amount" />
+            <FTextField
+              // type="number"
+              name="taxAmount.amount"
+              label="Tax Amount"
+              // inputProps={{ min: 1 }}
+            />
             <FTextField name="taxAmount.currency" label="Tax Currency" />
           </ExpandSection>
 
           {/* Shipping Amount */}
           <ExpandSection title="Shipping Amount">
-            <FTextField name="shippingAmount.amount" label="Shipping Amount" />
+            <FTextField
+              // type="number"
+              name="shippingAmount.amount"
+              label="Shipping Amount"
+              // inputProps={{ min: 1 }}
+            />
             <FTextField
               name="shippingAmount.currency"
               label="Shipping Currency"
@@ -221,7 +274,11 @@ const OrderForm = () => {
 
           {/* Frequency */}
           <ExpandSection title="Frequency">
-            <FTextField name="frequency.number" label="Frequency Number" />
+            <FTextField
+              name="frequency.number"
+              label="Frequency Number"
+              required
+            />
             <FTextField name="frequency.frequencyType" label="Frequency Type" />
           </ExpandSection>
 
