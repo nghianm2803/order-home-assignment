@@ -1,6 +1,6 @@
 import React from "react";
 import { LoadingButton } from "@mui/lab";
-import { Container, Stack, Alert, Typography, IconButton } from "@mui/material";
+import { Container, Stack, Alert, Typography, IconButton, Box } from "@mui/material";
 import { FormProvider, FTextField } from "../components/form";
 import { useForm, useFieldArray } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -97,9 +97,9 @@ const OrderForm = () => {
 
   return (
     <Container maxWidth="xs" data-testid="login-page">
-      <Typography mt={5}>Create Order</Typography>
+      <Typography variant="h5" mt={3} mb={3}>Create Order</Typography>
       <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-        <Stack spacing={2}>
+        <Stack spacing={2} mb={3}>
           {!!errors.responseError && (
             <Alert severity="error">{errors.responseError.message}</Alert>
           )}
@@ -141,11 +141,15 @@ const OrderForm = () => {
           {/* Shipping */}
           <ExpandSection title="Shipping">
             <FTextField name="shipping.phoneNumber" label="Phone Number" />
-            <FTextField name="shipping.name" label="Name" required/>
-            <FTextField name="shipping.line1" label="Address Line 1" required/>
-            <FTextField name="shipping.suburb" label="Suburb" required/>
-            <FTextField name="shipping.postcode" label="Postcode" required/>
-            <FTextField name="shipping.countryCode" label="Country Code" required/>
+            <FTextField name="shipping.name" label="Name" required />
+            <FTextField name="shipping.line1" label="Address Line 1" required />
+            <FTextField name="shipping.suburb" label="Suburb" required />
+            <FTextField name="shipping.postcode" label="Postcode" required />
+            <FTextField
+              name="shipping.countryCode"
+              label="Country Code"
+              required
+            />
           </ExpandSection>
 
           {/* Items */}
@@ -197,21 +201,32 @@ const OrderForm = () => {
                 <FTextField
                   name={`items[${index}].quantity`}
                   label="Quantity"
+                  required
                 />
                 <FTextField
-                  // type="number"
                   name={`items[${index}].price.amount`}
                   label="Price Amount"
-                  // inputProps={{ min: 1 }}
+                  required
                 />
                 <FTextField
                   name={`items[${index}].price.currency`}
                   label="Price Currency"
+                  required
                 />
-                <FTextField name={`items[${index}].name`} label="Item Name" />
+                <FTextField
+                  name={`items[${index}].name`}
+                  label="Item Name"
+                  required
+                />
                 <FTextField
                   name={`items[${index}].category`}
                   label="Category"
+                  required
+                />
+                <FTextField
+                  name={`items[${index}].sku`}
+                  label="Stock Keeping Unit"
+                  required
                 />
                 <FTextField name={`items[${index}].brand`} label="Brand" />
                 <FTextField name={`items[${index}].pageUrl`} label="Page Url" />
@@ -228,32 +243,24 @@ const OrderForm = () => {
             <FTextField
               name="merchant.redirectConfirmUrl"
               label="Redirect Confirm URL"
+              required
             />
             <FTextField
               name="merchant.redirectCancelUrl"
               label="Redirect Cancel URL"
+              required
             />
           </ExpandSection>
 
           {/* Tax Amount */}
           <ExpandSection title="Tax Amount">
-            <FTextField
-              // type="number"
-              name="taxAmount.amount"
-              label="Tax Amount"
-              // inputProps={{ min: 1 }}
-            />
+            <FTextField name="taxAmount.amount" label="Tax Amount" />
             <FTextField name="taxAmount.currency" label="Tax Currency" />
           </ExpandSection>
 
           {/* Shipping Amount */}
           <ExpandSection title="Shipping Amount">
-            <FTextField
-              // type="number"
-              name="shippingAmount.amount"
-              label="Shipping Amount"
-              // inputProps={{ min: 1 }}
-            />
+            <FTextField name="shippingAmount.amount" label="Shipping Amount" />
             <FTextField
               name="shippingAmount.currency"
               label="Shipping Currency"
@@ -292,15 +299,17 @@ const OrderForm = () => {
           />
         </Stack>
 
-        <LoadingButton
-          fullWidth
-          size="large"
-          type="submit"
-          variant="contained"
-          loading={isSubmitting}
-        >
-          Create
-        </LoadingButton>
+        <Box mb={3}>
+          <LoadingButton
+            fullWidth
+            size="large"
+            type="submit"
+            variant="contained"
+            loading={isSubmitting}
+          >
+            Create
+          </LoadingButton>
+        </Box>
       </FormProvider>
     </Container>
   );
